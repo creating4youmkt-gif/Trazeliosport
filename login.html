@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ingresar · Trazelio Sport</title><link rel="manifest" href="/manifest.json"><style>{{ css|safe }}body{display:flex;justify-content:center;align-items:center;min-height:100vh}</style></head><body>
+<div class="card" style="width:min(92vw,360px)"><h2 style="color:var(--g)">⚽ Trazelio Sport</h2>
+{% for cat, msg in get_flashed_messages(with_categories=true) %}<div class="msg {{ cat }}">{{ msg }}</div>{% endfor %}
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf() }}">
+<label class="muted">Código de tu club</label><input id="club" name="club" value="{{ prefill }}" placeholder="ej. estrellas-del-sur" required autocapitalize="none"><br><br>
+<input name="username" placeholder="Usuario" required autocapitalize="none"><br><br><input name="password" type="password" placeholder="Contraseña" required><br><br><button style="width:100%">Ingresar</button></form>
+{% if web_url %}<a href="{{ web_url }}/operacion" class="btn" style="display:block;text-align:center;background:var(--b);margin-top:12px;text-decoration:none">Ingresar con tu cuenta Trazelio</a><p class="muted" style="font-size:12px">Es la forma recomendada: no necesitas otro usuario ni otra contraseña aquí.</p>{% endif %}
+<p class="muted" style="font-size:13px;margin-top:14px">¿Tu club aún no está en Trazelio? <a href="/registro" style="color:var(--g)">Crea tu cuenta gratis</a>.</p></div>
+<script>const c=document.getElementById('club');if(!c.value)c.value=localStorage.getItem('trz-club')||'';document.querySelector('form').addEventListener('submit',()=>localStorage.setItem('trz-club',c.value.trim().toLowerCase()))</script></body></html>

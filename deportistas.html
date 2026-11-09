@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% import '_m.html' as m %}{% block body %}
+<div class="row"><h2>Deportistas</h2><div>{{ m.reportes('estadisticas', '📈 Estadísticas') }} {{ m.reportes('deportistas') }}</div></div>
+{% if not categorias %}<div class="msg warn">Todavía no tienes categorías asignadas. Pídele al administrador que te asigne las tuyas.</div>{% else %}
+<div class="card"><h3>{{ 'Editar deportista' if e.id else 'Registro rápido' }}</h3><form method="post" action="/deportistas/guardar">{{ m.tok() }}<input type="hidden" name="id" value="{{ e.id }}">
+<div class="grid"><input name="nombre" placeholder="Nombre completo" value="{{ e.nombre }}" required autofocus>
+<select name="categoria">{% for c in categorias %}<option {{ 'selected' if e.categoria == c }}>{{ c }}</option>{% endfor %}</select>
+<button name="siguiente" value="">Guardar</button><button name="siguiente" value="ficha" class="btn-blue">Guardar y completar ficha</button><button name="siguiente" value="rostro" class="btn-gold">Guardar y registrar rostro 📸</button></div>
+<details {{ 'open' if e.id }} style="margin-top:12px"><summary class="muted" style="cursor:pointer">Más datos (opcional)</summary><div class="grid" style="margin-top:10px">
+<input name="documento" placeholder="Documento (opcional)" value="{{ e.documento if e.documento and not e.documento.startswith('SD-') }}">
+<select name="rol_deportivo">{% for r in roles %}<option {{ 'selected' if e.rol_deportivo == r }}>{{ r }}</option>{% endfor %}</select>
+<input name="acudiente_nombre" placeholder="Acudiente" value="{{ e.acudiente_nombre }}"><input name="acudiente_celular" placeholder="Celular del acudiente" value="{{ e.acudiente_celular }}">
+<input name="contacto_emergencia" placeholder="Contacto de emergencia" value="{{ e.contacto_emergencia }}"></div></details></form></div>{% endif %}
+<div class="card"><form class="row" method="get"><input name="q" value="{{ t }}" placeholder="Buscar por nombre o documento" style="max-width:340px"><button class="btn-blue">Buscar</button></form>
+<table><tr><th></th><th>Nombre</th><th>Categoría</th><th>Acudiente</th><th></th></tr>
+{% for r in rows %}<tr style="{{ 'opacity:.5' if not r.activo }}"><td>{{ m.avatar(r.nombre, '/foto/' ~ r.foto if r.foto, 34) }}</td><td>{{ r.nombre }} {{ '📸' if r.rostros }} {{ '⏳' if r.foto_pendiente }}<div class="muted" style="font-size:12px">{{ '' if r.documento.startswith('SD-') else r.documento }}</div></td><td>{{ r.categoria }}</td><td>{{ r.acudiente_nombre or '' }} {{ r.acudiente_celular or '' }}</td>
+<td style="white-space:nowrap"><a class="btn btn-sm btn-gold" href="/deportistas/{{ r.id }}/carta">🃏 Carta</a> <a class="btn btn-sm btn-blue" href="/deportistas/{{ r.id }}/ficha">🪪 Ficha</a> <a class="btn btn-sm" href="/deportistas/{{ r.id }}/enlace">🔗</a> <a class="btn btn-sm btn-blue" href="/deportistas?edit={{ r.id }}">Editar</a>
+{% if session.rol == 'admin' %}<form method="post" action="/deportistas/{{ r.id }}/estado" style="display:inline">{{ m.tok() }}<button class="btn-sm btn-gold">{{ 'Desactivar' if r.activo else 'Activar' }}</button></form>{% endif %}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">Aún no hay deportistas. Usa el registro rápido: solo necesitas nombre y categoría.</td></tr>{% endfor %}</table></div>{% endblock %}

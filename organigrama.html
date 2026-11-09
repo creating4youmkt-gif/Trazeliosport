@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% import '_m.html' as m %}{% block body %}<h2>Estructura del club</h2>
+<div class="card"><h3>{{ club.nombre }}</h3><p>Dirección: {% for a in admins %}<b>{{ a.nombre_completo or a.username }}</b>{{ ', ' if not loop.last }}{% endfor %}</p>
+{% if kioscos %}<p class="muted">Kioscos de asistencia: {% for k in kioscos %}{{ k.username }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}</div>
+<div class="grid">{% for cat, ent, n in ramas %}<div class="card" style="margin:0"><h3>{{ cat }}</h3><p class="muted">{{ n }} deportistas · <a href="/deportistas" style="color:var(--b)">ver</a></p>
+{% for e in ent %}<div style="display:flex;gap:8px;align-items:center;margin:6px 0">{{ m.avatar(e.nombre_completo or e.username, '/foto/' ~ e.foto if e.foto, 30) }}<span>{{ e.nombre_completo or e.username }}<br><small class="muted">{{ e.cargo or 'Entrenador' }}</small></span></div>
+{% else %}<div class="msg warn" style="margin:0">Sin entrenador asignado</div>{% endfor %}</div>{% endfor %}</div>{% endblock %}

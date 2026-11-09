@@ -1,0 +1,7 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ club.nombre }}</title>
+<link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#0F5132"><link rel="icon" href="/static/icon-192.png"><style>{{ css|safe }}</style></head><body>
+<nav class="nav noprint"><b>⚽ {{ club.nombre }}</b><a href="/asistencia">Asistencia</a><a href="/eventos">Partidos y entrenos</a><a href="/deportistas">Deportistas</a><a href="/cobros">Cobros y Tienda</a><a href="/inventario">Inventario</a><a href="/caja">Caja</a><a href="/asistencia/facial">📸 Facial</a>
+{% if session.rol == 'admin' %}<a href="/resumen">Resumen</a><a href="/avisos">Avisos</a><a href="/usuarios">Usuarios</a><a href="/organigrama">Estructura</a><a href="/configuracion">Configuración</a>{% endif %}
+<span class="sp"></span><span id="red" class="muted" style="font-size:12px"></span><a href="/perfil">{{ session.user }} · {{ session.rol }}</a><a href="/logout" class="out" onclick="salir(event)">Salir</a></nav>
+<main>{% for cat, msg in get_flashed_messages(with_categories=true) %}<div class="msg {{ cat }}">{{ msg }}</div>{% endfor %}{% block body %}{% endblock %}</main>
+<script src="/static/offline.js?v=3"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js')</script></body></html>

@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crea tu club · Trazelio Sport</title><style>{{ css|safe }}body{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px}</style></head><body>
+<div class="card" style="width:min(94vw,520px)"><h2 style="color:var(--g)">⚽ Crea tu club</h2><p class="muted">15 días de prueba completos. No pedimos tarjeta.</p>
+{% for cat, msg in get_flashed_messages(with_categories=true) %}<div class="msg {{ cat }}">{{ msg }}</div>{% endfor %}
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf() }}"><input name="nombre" placeholder="Nombre del club o escuela" value="{{ v.nombre or '' }}" required><br><br>
+<label class="muted">Código del club (con él ingresan tus entrenadores)</label><input name="codigo" placeholder="ej. estrellas-del-sur" value="{{ v.codigo or '' }}" autocapitalize="none"><br><br>
+<input name="admin" placeholder="Tu nombre completo" value="{{ v.admin or '' }}" required><br><br><div class="grid"><input name="celular" placeholder="Celular" value="{{ v.celular or '' }}"><input name="email" type="email" placeholder="Correo" value="{{ v.email or '' }}"></div><br>
+<div class="grid"><input name="usuario" placeholder="Tu usuario" value="{{ v.usuario or '' }}" autocapitalize="none" required><input name="clave" type="password" placeholder="Contraseña (mínimo 8)" required></div><br>
+<label style="font-size:13px"><input type="checkbox" name="acepta" value="1" style="width:auto" required> Acepto el tratamiento de datos personales. Me comprometo a pedir autorización a los acudientes antes de registrar fotos o rostros de menores.</label><br><br><button style="width:100%">Crear mi club</button></form>
+<p class="muted" style="font-size:13px;margin-top:12px">¿Ya tienes cuenta? <a href="/login" style="color:var(--g)">Ingresar</a></p></div></body></html>
