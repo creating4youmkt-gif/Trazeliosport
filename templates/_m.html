@@ -1,0 +1,4 @@
+{% macro reportes(mod, etq='📑 Reportes') %}<details class="dd noprint"><summary class="btn btn-blue">{{ etq }} ▾</summary><div class="dd-menu">
+<a href="/reporte/{{ mod }}?fmt=xlsx">📊 Descargar en Excel</a><a href="/reporte/{{ mod }}" target="_blank">📄 Versión PDF / Impresión</a></div></details>{% endmacro %}
+{% macro tok() %}<input type="hidden" name="csrf" value="{{ csrf() }}">{% endmacro %}
+{% macro avatar(nombre, src=None, tam=40) %}{% if src %}<img src="{{ src }}" alt="" style="width:{{ tam }}px;height:{{ tam }}px;border-radius:50%;object-fit:cover;vertical-align:middle">{% else %}<span style="display:inline-flex;width:{{ tam }}px;height:{{ tam }}px;border-radius:50%;background:var(--bd);align-items:center;justify-content:center;font-weight:800;vertical-align:middle">{{ (nombre or '?')[:1]|upper }}</span>{% endif %}{% endmacro %}

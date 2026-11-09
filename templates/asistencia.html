@@ -1,0 +1,21 @@
+{% extends 'base.html' %}{% import '_m.html' as m %}{% block body %}
+<div class="row"><h2>Control de Asistencia</h2><div><a class="btn btn-blue" href="/asistencia/facial">📸 Modo facial</a> {{ m.reportes('asistencias') }}</div></div>
+{% if not categorias %}<div class="msg warn">Todavía no tienes categorías asignadas. Pídele al administrador que te asigne las tuyas.</div>{% else %}
+<div class="two"><div class="card"><h3>⚡ Marcar por nombre</h3><input id="buscar" placeholder="Escribe el nombre o apellido…" autocomplete="off" autofocus><div id="res" style="margin-top:8px"></div>
+<details style="margin-top:10px"><summary class="muted" style="cursor:pointer">Usar documento o lector</summary><form method="post" action="/asistencia/marcar" style="margin-top:8px">{{ m.tok() }}<input name="documento" placeholder="Documento"><br><br><button class="btn-sm">Registrar</button></form></details></div>
+<div class="card"><h3>Hoy</h3>{% for h in hoy %}<div>{{ h.fecha[11:16] }} · <b>{{ h.nombre }}</b> {{ '📸' if h.metodo == 'FACIAL' }} <span class="muted">{{ h.categoria }}</span>{% if h.pend %} <span class="dot" title="Mensualidad pendiente">●</span>{% endif %}</div>{% else %}<span class="muted">Sin registros todavía.</span>{% endfor %}</div></div>
+<div class="card"><form class="row" method="get"><h3 style="margin:0">Lista por categoría</h3><select name="cat" onchange="this.form.submit()" style="max-width:240px">{% for c in categorias %}<option {{ 'selected' if c == cat }}>{{ c }}</option>{% endfor %}</select></form>
+<table>{% for r in rows %}<tr><td>{{ r.nombre }} {% if gracia and not r.pagado %}<span class="dot" title="Mensualidad pendiente">●</span>{% endif %}</td><td class="muted">{{ r.rol_deportivo }}</td>
+<td>{% if r.presente %}<span class="pos">✔ Presente</span>{% else %}<button class="btn-sm" data-marcar="{{ r.id }}">Marcar</button>{% endif %}</td></tr>
+{% else %}<tr><td class="muted">No hay deportistas activos en esta categoría.</td></tr>{% endfor %}</table></div>{% endif %}
+<script>const CSRF="{{ csrf() }}";TZ.csrf=CSRF;const box=document.getElementById('res');let t=null;
+const ESTADOS=r=>r.enviado?(r.nuevos?'✔ Presente':'✔ Ya estaba registrado'):'⏳ Se enviará cuando vuelva el internet';
+async function buscar(v){try{const r=await fetch('/api/deportistas/buscar?q='+encodeURIComponent(v),{signal:AbortSignal.timeout(4000)});if(r.ok&&(r.headers.get('content-type')||'').includes('json'))return await r.json()}catch(e){}return TZ.buscarLocal(v)}
+async function marcar(btn,id){btn.disabled=true;const r=await TZ.marcar({id:+id,metodo:'MANUAL'});const s=document.createElement('span');s.className='pos';s.textContent=ESTADOS(r);btn.replaceWith(s);TZ.estado()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-marcar]');if(b)marcar(b,b.dataset.marcar)});
+const inp=document.getElementById('buscar');if(inp)inp.addEventListener('input',e=>{clearTimeout(t);const v=e.target.value.trim();if(v.length<2){box.textContent='';return}
+ t=setTimeout(async()=>{const j=await buscar(v);box.textContent='';if(!j.length){box.textContent='Sin resultados. ¿Está registrado?';return}
+  j.forEach(d=>{const f=document.createElement('div');f.style.cssText='display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)';
+   const s=document.createElement('span');s.textContent=d.nombre+' · '+d.categoria;f.appendChild(s);
+   if(d.presente){const p=document.createElement('span');p.className='pos';p.textContent='✔ Presente';f.appendChild(p)}else{const b=document.createElement('button');b.className='btn-sm';b.textContent='Marcar';b.dataset.marcar=d.id;f.appendChild(b)}
+   box.appendChild(f)})},250)});</script>{% endblock %}

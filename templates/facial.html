@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Asistencia facial</title><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#0F5132"><style>{{ css|safe }}
+body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:12px}#wrap,#banner,#log,.top{width:min(94vw,640px)}.top{display:flex;justify-content:space-between;align-items:center}
+#banner{margin-top:14px;padding:18px;border-radius:14px;text-align:center;font-size:22px;font-weight:800;background:var(--card);border:2px solid var(--bd)}.okb{border-color:var(--g)!important;background:#10B98122!important}.wb{border-color:var(--y)!important}
+#log{margin-top:12px;font-size:14px}#log div{padding:5px 0;border-bottom:1px solid var(--bd)}</style></head><body>
+<div class="top"><b style="color:var(--g)">⚽ {{ club.nombre }} · Asistencia facial</b><span><span id="red" class="muted" style="font-size:12px"></span> {% if session.rol != 'kiosco' %}<a href="/asistencia" style="color:var(--m)">Manual</a> · {% endif %}<a href="/logout" style="color:var(--r)" onclick="salir(event)">Salir</a></span></div>
+<div id="wrap" style="margin-top:12px"><video id="video" class="cam" autoplay muted playsinline></video></div><div id="banner">Iniciando…</div><div id="log"></div>
+<script src="/static/face-api.js"></script><script src="/static/offline.js?v=3"></script><script>
+const CSRF="{{ csrf() }}";TZ.csrf=CSRF;const banner=document.getElementById('banner'),logEl=document.getElementById('log'),video=document.getElementById('video');
+let busy=false,ultimo={n:null,t:0},msgT=0;
+function aviso(t,c){banner.textContent=t;banner.className=c||''}
+function agregar(j){const d=document.createElement('div');d.textContent=new Date().toTimeString().slice(0,5)+' · '+j.nombre+' · '+j.categoria+(j.pendiente?' ●':'')+(j.offline?' (sin conexión)':'');logEl.prepend(d);while(logEl.children.length>12)logEl.lastChild.remove()}
+async function iniciar(){try{aviso('Cargando reconocimiento…');
+ await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');await faceapi.nets.faceLandmark68Net.loadFromUri('/static/models');await faceapi.nets.faceRecognitionNet.loadFromUri('/static/models');
+ TZ.paquete(true);setInterval(()=>{if(navigator.onLine)TZ.paquete(true)},600000);
+ video.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+ await video.play();aviso('Acércate a la cámara');ciclo()}catch(e){aviso('No se pudo iniciar la cámara ('+e.message+'). Se requiere HTTPS y permiso de cámara.','wb')}}
+async function ciclo(){if(!busy){busy=true;try{
+  const det=await faceapi.detectSingleFace(video,new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.6})).withFaceLandmarks().withFaceDescriptor();
+  if(det&&det.detection.box.width>110)await procesar(Array.from(det.descriptor))}catch(e){}busy=false}setTimeout(ciclo,600)}
+async function identificar(d){
+ if(navigator.onLine){try{const r=await fetch('/api/facial/identificar',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF':CSRF},body:JSON.stringify({descriptor:d}),signal:AbortSignal.timeout(5000)});
+  if(r.ok&&(r.headers.get('content-type')||'').includes('json'))return await r.json()}catch(e){}}
+ const p=await TZ.get('paquete');if(!p||!p.rostros||!p.rostros.length)return {estado:'sin_paquete'};
+ const r=TZ.identificarLocal(d,p);if(r.estado!=='ok')return r;
+ const hoy=TZ.ahora().slice(0,10);let h=(await TZ.get('hoy'))||{dia:hoy,ids:[]};if(h.dia!==hoy)h={dia:hoy,ids:[]};
+ const ya=h.ids.includes(r.id);if(!ya){h.ids.push(r.id);await TZ.set('hoy',h);await TZ.encolar({id:r.id,ts:TZ.ahora(),metodo:'FACIAL',dist:r.dist});TZ.estado()}
+ return {estado:'ok',ya,nombre:r.nombre,categoria:r.categoria,pendiente:false,offline:true}}
+async function procesar(d){const j=await identificar(d),now=Date.now();
+ if(j.estado==='ok'){if(ultimo.n===j.nombre&&now-ultimo.t<8000)return;ultimo={n:j.nombre,t:now};aviso(j.ya?'Ya registrado hoy: '+j.nombre:'¡Bienvenido, '+j.nombre+'!',j.ya?'':'okb');if(!j.ya)agregar(j)}
+ else if(now-msgT>3000){msgT=now;aviso(j.estado==='ambiguo'?'Rostro dudoso: usa el ingreso por nombre':(j.estado==='sin_paquete'?'Sin conexión y sin datos guardados. Conecta la tablet una vez.':'Rostro no reconocido'),'wb')}}
+iniciar();</script></body></html>
