@@ -1,0 +1,53 @@
+TRAZELIO SPORT - PLATAFORMA PARA CLUBES (varios clubes, web + app instalable)
+
+1) PROBAR EN TU PC
+   pip install -r requirements.txt
+   python trazelio_sport.py      -> http://127.0.0.1:5000   (la cámara funciona en localhost)
+   Entra a /registro para crear un club de prueba. Panel de plataforma: /plataforma/login
+   (requiere la variable TRAZELIO_SUPER_PASS).
+
+2) PUBLICARLO (servidor Linux con dominio)
+   - Copia la carpeta a /opt/trazelio-sport, crea el entorno:  python3 -m venv venv && venv/bin/pip install -r requirements.txt
+   - Edita trazelio-sport.service (claves, precios, tu WhatsApp), cópialo a /etc/systemd/system/ y:  systemctl enable --now trazelio-sport
+   - HTTPS con Caddy usando el Caddyfile. La cámara del celular/tablet SOLO funciona con HTTPS.
+   - Zona horaria: TRAZELIO_TZ (por defecto America/Bogota). Afecta el corte de "hoy" en asistencia.
+
+3) CLUBES Y SUSCRIPCIONES
+   - Cada club tiene su propia base de datos en datos_deportivos/clubes/<codigo>/ (datos, fotos y copias).
+   - Registro público en /registro: 15 días de prueba. Al vencer, el staff ve la página de suscripción y los
+     enlaces de papás quedan en pausa. Los datos no se borran.
+   - Activar planes: (a) a mano desde /plataforma (Mensual, Anual, sumar días, suspender), o
+     (b) automático: tu pasarela llama a POST /webhook/pagos con el cuerpo {"slug":"codigo","plan":"MENSUAL|ANUAL","paid":true}
+     y la cabecera X-Signature = HMAC-SHA256 hex del cuerpo con TRAZELIO_WEBHOOK_SECRET.
+     (Cada pasarela firma distinto: ajusta webhook_pagos() a la que uses.)
+   - PRECIOS: los de la plantilla son de ejemplo. Defínelos con TRAZELIO_PRECIO_MENSUAL / _ANUAL.
+
+4) ROLES
+   admin (director) · entrenador (solo sus categorías) · kiosco (solo cámara) · acudiente y jugador (enlaces privados).
+   El admin asigna categorías a cada entrenador en Usuarios. Estructura visual en /organigrama.
+
+5) CARTA DEL JUGADOR Y ESTADÍSTICAS
+   Deportistas > Ficha (foto, dorsal, posición...) · Partidos y entrenos > crear evento > cargar estadísticas.
+   El jugador entra con su enlace (🔗), ve su carta, números y logros, y puede cambiar apodo, lema y foto
+   (la foto la aprueba el entrenador antes de mostrarse).
+
+6) ASISTENCIA: por nombre, por documento o con la cámara (kiosco). Sin internet: la tablet guarda las marcas y
+   las sincroniza al volver la conexión. Para el modo facial sin internet, abre la pantalla facial una vez con conexión.
+   Cobros y caja SÍ requieren conexión.
+
+7) WHATSAPP
+   Manual (por defecto): /avisos lista los mensajes; los abres en WhatsApp y los marcas como enviados.
+   Automático: Configuración > Avisos por WhatsApp. Necesitas una cuenta de WhatsApp Business Platform (Meta),
+   el ID del número, un token y UNA plantilla aprobada con una sola variable en medio del texto, por ejemplo:
+   "Aviso de tu club deportivo: {{1}} Gracias por acompañar a tu deportista."
+   La versión de la API se configura (por defecto v26.0): revísala en tu panel de Meta.
+   Solo se avisa a acudientes con la casilla de autorización marcada en la ficha.
+
+8) PROTECCIÓN DE DATOS DE MENORES
+   Rostros: solo con autorización del acudiente registrada. Se guarda un código numérico, no la foto.
+   Fotos: se sirven solo a usuarios del club o por enlace privado. Revisa con un abogado tu política de tratamiento.
+
+9) ACCESO ÚNICO DESDE LA PLATAFORMA CLOUD (FastAPI / Next.js)
+   Define TRAZELIO_BRIDGE_SECRET (igual a BRIDGE_SECRET de la API). Ruta: /sso?t=<enlace firmado de 60 s, un solo uso>.
+   Crea el club o el usuario en Flask si no existen y copia plan, estado y vencimiento desde la plataforma cloud.
+   Los usuarios creados por esta vía entran solo por el puente (tienen contraseña aleatoria).

@@ -1,0 +1,4 @@
+# Reemplaza por tu dominio. Caddy obtiene y renueva el certificado HTTPS solo.
+club.tudominio.com {
+    reverse_proxy 127.0.0.1:5000
+}

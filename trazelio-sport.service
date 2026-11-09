@@ -1,0 +1,26 @@
+[Unit]
+Description=Trazelio Sport
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/trazelio-sport
+Environment=TRAZELIO_HOST=127.0.0.1
+Environment=TRAZELIO_HTTPS=1
+Environment=TRAZELIO_TZ=America/Bogota
+Environment=TRAZELIO_SUPER_PASS=cambia-esta-clave-larga
+Environment=TRAZELIO_WEBHOOK_SECRET=cambia-este-secreto
+Environment=TRAZELIO_BRIDGE_SECRET=el-mismo-secreto-que-BRIDGE_SECRET-de-FastAPI
+Environment=TRAZELIO_API_URL=https://api.tudominio.com
+Environment=TRAZELIO_WEB_URL=https://tudominio.com
+Environment=TRAZELIO_PRECIO_MENSUAL=89000
+Environment=TRAZELIO_PRECIO_ANUAL=890000
+Environment=TRAZELIO_CONTACTO_WA=573001234567
+# Enlaces de pago de tu pasarela (opcional):
+#Environment=TRAZELIO_PAGO_MENSUAL=https://...
+#Environment=TRAZELIO_PAGO_ANUAL=https://...
+ExecStart=/opt/trazelio-sport/venv/bin/python trazelio_sport.py
+Restart=always
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
