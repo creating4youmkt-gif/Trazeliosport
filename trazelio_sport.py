@@ -1658,12 +1658,13 @@ T['resumen.html'] = """{% extends 'base.html' %}{% block body %}<div class="row"
 app.jinja_env.loader = ChoiceLoader([FileSystemLoader(os.path.join(BASE, 'templates')), DictLoader({k: v.replace('/*CSS*/', CSS) for k, v in T.items()})])
 
 if __name__ == '__main__':
+    import os
     init_db()
+    port = int(os.environ.get('PORT', 5000))
     threading.Thread(target=trabajador, daemon=True).start()
-    print(f'Trazelio Sport activo en http://{HOST}:{PORT}  (Ctrl+C para cerrar)')
-    if HOST == '127.0.0.1': threading.Timer(1.2, lambda: webbrowser.open(f'http://127.0.0.1:{PORT}')).start()
+    print(f"Trazelio Sport activo en http://0.0.0.0:{port}")
     try:
         from waitress import serve
-        serve(app, host=HOST, port=PORT, threads=8)
+        serve(app, host='0.0.0.0', port=port, threads=8)
     except ImportError:
-        app.run(host=HOST, port=PORT, debug=False, threaded=True)
+        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
